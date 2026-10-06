@@ -124,6 +124,24 @@ func (l *Ledger) GetAccount(ctx context.Context, id string) (Account, error) {
 	return a, err
 }
 
+// ListAccounts returns accounts in creation order.
+func (l *Ledger) ListAccounts(ctx context.Context, limit int) ([]Account, error) {
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+	rows, err := l.pool.Query(ctx, `
+		SELECT id::text, name, currency, allow_negative, balance, created_at
+		FROM accounts ORDER BY created_at, id LIMIT $1`, limit)
+	if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (Account, error) {
+		var a Account
+		err := r.Scan(&a.ID, &a.Name, &a.Currency, &a.AllowNegative, &a.Balance, &a.CreatedAt)
+		return a, err
+	})
+}
+
 // ListEntries returns an account's journal in order, using keyset pagination:
 // pass the last entry ID you saw as after.
 func (l *Ledger) ListEntries(ctx context.Context, accountID string, after int64, limit int) ([]Entry, error) {

@@ -95,6 +95,12 @@ func TestTransferFlowOverHTTP(t *testing.T) {
 		t.Fatalf("missing key: status %d", r.StatusCode)
 	}
 
+	var list struct{ Accounts []ledger.Account }
+	call(t, srv, "GET", "/v1/accounts", "", nil, &list)
+	if len(list.Accounts) != 2 || list.Accounts[0].Name != "world" {
+		t.Fatalf("list accounts: %+v", list.Accounts)
+	}
+
 	var audit struct{ Consistent bool }
 	call(t, srv, "GET", "/v1/audit", "", nil, &audit)
 	if !audit.Consistent {

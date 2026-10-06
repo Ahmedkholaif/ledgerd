@@ -76,6 +76,7 @@ Tests: `docker compose up -d postgres && make test`
 | Method | Path | Notes |
 |---|---|---|
 | `POST` | `/v1/accounts` | `{name, currency, allow_negative}`. Amounts are integer minor units. |
+| `GET` | `/v1/accounts?limit=` | All accounts in creation order |
 | `GET` | `/v1/accounts/{id}` | Current balance |
 | `GET` | `/v1/accounts/{id}/entries?after=&limit=` | Journal with keyset pagination |
 | `POST` | `/v1/transfers` | Needs an `Idempotency-Key` header. Returns `201` when new, or `200` with `Idempotent-Replayed: true` on a replay |

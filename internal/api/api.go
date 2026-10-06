@@ -24,6 +24,7 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) })
 	mux.HandleFunc("POST /v1/accounts", s.createAccount)
+	mux.HandleFunc("GET /v1/accounts", s.listAccounts)
 	mux.HandleFunc("GET /v1/accounts/{id}", s.getAccount)
 	mux.HandleFunc("GET /v1/accounts/{id}/entries", s.listEntries)
 	mux.HandleFunc("POST /v1/transfers", s.createTransfer)
@@ -43,6 +44,16 @@ func (s *Server) createAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusCreated, a)
+}
+
+func (s *Server) listAccounts(w http.ResponseWriter, r *http.Request) {
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	accounts, err := s.ledger.ListAccounts(r.Context(), limit)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"accounts": accounts})
 }
 
 func (s *Server) getAccount(w http.ResponseWriter, r *http.Request) {
